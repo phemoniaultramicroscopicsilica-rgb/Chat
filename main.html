@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chatting Tool</title>
+    <style>
+        body { font-family: Arial; }
+        #chatbox { border: 1px solid #333; height: 300px; overflow-y: scroll; padding: 5px; }
+        #loginDiv { display: none; }
+        #chatDiv { display: none; }
+    </style>
+</head>
+<body>
+<h2>Chatting Tool</h2>
+
+<div id="loginDiv">
+    <input type="text" id="username" placeholder="Enter username">
+    <button onclick="login()">Login</button>
+</div>
+
+<div id="chatDiv">
+    <p>Welcome, <span id="userDisplay"></span>!</p>
+    <div id="chatbox"></div>
+    <input type="text" id="message" placeholder="Type message...">
+    <button onclick="sendMessage()">Send</button>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+<script>
+    // Firebase config (replace with your own)
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "SENDER_ID",
+        appId: "APP_ID"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let username = "";
+
+    // Show login initially
+    document.getElementById("loginDiv").style.display = "block";
+
+    function login(){
+        username = document.getElementById("username").value.trim();
+        if(username === "") { alert("Enter a username!"); return; }
+        document.getElementById("loginDiv").style.display = "none";
+        document.getElementById("chatDiv").style.display = "block";
+        document.getElementById("userDisplay").innerText = username;
+    }
+
+    function sendMessage(){
+        const msg = document.getElementById("message").value.trim();
+        if(msg === "") return;
+        db.ref("messages").push({user: username, message: msg});
+        document.getElementById("message").value = "";
+    }
+
+    // Listen for messages
+    db.ref("messages").on("child_added", snapshot => {
+        const data = snapshot.val();
+        const chatbox = document.getElementById("chatbox");
+        const p = document.createElement("p");
+        p.textContent = `[${data.user}]: ${data.message}`;
+        chatbox.appendChild(p);
+        chatbox.scrollTop = chatbox.scrollHeight;
+    });
+</script>
+</body>
+</html>
